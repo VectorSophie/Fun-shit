@@ -22,7 +22,8 @@ def barcode_scan(barcode):
                 arrcode[11] = str(tots)
                 print("Full barcode:", "".join(arrcode))
             else:
-                print(f"{damage+1}th digit damaged")
+                suffix = "st" if damage == 0 else "nd" if damage == 1 else "rd" if damage == 2 else "th"
+                print(f"{damage + 1}{suffix} digit damaged")
                 print("Calculating...")
                 for guess in range(10):
                     tempcode = arrcode.copy()
@@ -43,7 +44,7 @@ def barcode_scan(barcode):
         else:
             print("Invalid barcode")
             
-print(barcode_scan('0x6000291452'))
+print(barcode_scan('0421x0005264'))
             
             
 
