@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terminal Portfolio</title>
+  <style>
+    body {
+      background: #000;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Courier New', Courier, monospace;
+      user-select: none;
+    }
+    #terminal {
+      background: #000;
+      border: 2px solid #94b1ff;
+      width: 80vw;
+      height: 70vh;
+      max-width: 1000px;
+      max-height: 800px;
+      padding: 1.5rem;
+      box-shadow: 0 0 30px #94b1ffaa;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .output-container {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 0.5rem;
+    }
+    .output {
+      white-space: pre-wrap;
+      margin: 0.25rem 0;
+      color: #94b1ff;
+    }
+    .line {
+      display: flex;
+      align-items: center;
+    }
+    .prompt {
+      margin-right: 0.5rem;
+      color: #94b1ff;
+      font-weight: bold;
+    }
+    #input-line {
+      flex-grow: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #94b1ff;
+      font-size: 1.1rem;
+      caret-color: #94b1ff;
+      font-family: inherit;
+    }
+    .blinking-cursor {
+      width: 8px;
+      height: 1.2em;
+      background-color: #94b1ff;
+      margin-left: 2px;
+      animation: blink 1s steps(2, start) infinite;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      50.01%, 100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal" tabindex="0">
+    <div class="output-container">
+      <div class="output">Welcome to My Terminal Portfolio! Type <span style="color:#fff;">help</span> to see commands.</div>
+    </div>
+    <div class="line">
+      <span class="prompt">C:\Users\Myself&gt;</span>
+      <input id="input-line" autocomplete="off" autofocus />
+      <div class="blinking-cursor"></div>
+    </div>
+  </div>
+
+  <script>
+    const terminal = document.getElementById('terminal');
+    const outputContainer = terminal.querySelector('.output-container');
+    const inputLine = document.getElementById('input-line');
+
+    const commands = {
+      help: `Available commands:
+  about     - About me
+  projects  - List of projects
+  contact   - How to contact me
+  clear     - Clear the terminal`,
+
+      about: `Hi, I'm Jack — a developer passionate about clean code and cool interfaces.
+I build web apps, experiment with new tech, and love all things open source.`,
+
+      projects: `- Terminal Portfolio (this one!)
+- indicamp: a site that assists on creating a team project.`,
+
+      contact: `Email: jay7math@gmail.com
+GitHub: github.com/VectorSophie`  }; 
+
+    function printOutput(text) {
+      const el = document.createElement('div');
+      el.className = 'output';
+      el.textContent = text;
+      outputContainer.appendChild(el);
+      outputContainer.scrollTop = outputContainer.scrollHeight;
+    }
+
+    function clearTerminal() {
+      outputContainer.innerHTML = '';
+    }
+
+    inputLine.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const input = inputLine.value.trim().toLowerCase();
+        if (!input) return;
+
+        printOutput(`C:\\Users\\Myself> ${input}`);
+
+        if (input === 'clear') {
+          clearTerminal();
+        } else if (commands[input]) {
+          printOutput(commands[input]);
+        } else {
+          printOutput(`'${input}' is not recognized as an internal or external command.\nType 'help' to see available commands.`);
+        }
+
+        inputLine.value = '';
+      }
+    });
+
+    terminal.addEventListener('click', () => inputLine.focus());
+  </script>
+</body>
+</html>
