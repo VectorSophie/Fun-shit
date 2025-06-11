@@ -192,14 +192,13 @@ Choose a new terminal color.`,
     });
 
     colorPicker.addEventListener('input', (e) => {
-  const newColor = e.target.value;
-  document.documentElement.style.setProperty('--terminal-color', newColor);
-  document.documentElement.style.setProperty('--text-color', newColor);
-  document.documentElement.style.setProperty('--prompt-color', newColor);
-});
+      const newColor = e.target.value;
+      document.documentElement.style.setProperty('--terminal-color', newColor);
+    });
 
     terminal.addEventListener('click', () => inputLine.focus());
 
+    // On load: animate the welcome message
     animatedWelcome("Welcome to My Terminal Portfolio! Type 'help' to see commands.");
   </script>
 </body>
