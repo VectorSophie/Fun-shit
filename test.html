@@ -192,9 +192,11 @@ Choose a new terminal color.`,
     });
 
     colorPicker.addEventListener('input', (e) => {
-      const newColor = e.target.value;
-      document.documentElement.style.setProperty('--terminal-color', newColor);
-    });
+  const newColor = e.target.value;
+  document.documentElement.style.setProperty('--terminal-color', newColor);
+  document.documentElement.style.setProperty('--text-color', newColor);
+  document.documentElement.style.setProperty('--prompt-color', newColor);
+});
 
     terminal.addEventListener('click', () => inputLine.focus());
 
