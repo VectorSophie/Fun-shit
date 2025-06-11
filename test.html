@@ -5,77 +5,102 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Terminal Portfolio</title>
   <style>
+    :root {
+      --terminal-color: #94b1ff;
+      --bg-color: #000;
+      --text-color: #94b1ff;
+      --prompt-color: #94b1ff;
+    }
+
     body {
-      background: #000;
+      background: var(--bg-color);
       margin: 0;
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: 'Consolas', monospace;
       user-select: none;
+      transition: background 0.4s ease;
     }
+
+    body.light-theme {
+      --bg-color: #f9f9f9;
+      --text-color: #1a1a1a;
+      --prompt-color: #2e58a6;
+    }
+
     #terminal {
-      background: #000;
-      border: 2px solid #94b1ff;
+      background: var(--bg-color);
+      border: 2px solid var(--terminal-color);
       width: 80vw;
       height: 70vh;
       max-width: 1000px;
       max-height: 800px;
       padding: 1.5rem;
-      box-shadow: 0 0 30px #94b1ffaa;
+      box-shadow: 0 0 30px var(--terminal-color)aa;
       border-radius: 8px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      transition: all 0.4s ease;
     }
+
     .output-container {
       flex-grow: 1;
       overflow-y: auto;
       margin-bottom: 0.5rem;
     }
+
     .output {
       white-space: pre-wrap;
       margin: 0.25rem 0;
-      color: #94b1ff;
+      color: var(--text-color);
     }
+
     .line {
       display: flex;
       align-items: center;
     }
+
     .prompt {
       margin-right: 0.5rem;
-      color: #94b1ff;
+      color: var(--prompt-color);
       font-weight: bold;
     }
+
     #input-line {
       flex-grow: 1;
       background: transparent;
       border: none;
       outline: none;
-      color: #94b1ff;
+      color: var(--text-color);
       font-size: 1.1rem;
-      caret-color: #94b1ff;
+      caret-color: var(--text-color);
       font-family: inherit;
     }
+
     .blinking-cursor {
       width: 8px;
       height: 1.2em;
-      background-color: #94b1ff;
+      background-color: var(--text-color);
       margin-left: 2px;
       animation: blink 1s steps(2, start) infinite;
     }
+
     @keyframes blink {
       0%, 50% { opacity: 1; }
       50.01%, 100% { opacity: 0; }
+    }
+
+    #color-picker {
+      display: none;
     }
   </style>
 </head>
 <body>
   <div id="terminal" tabindex="0">
-    <div class="output-container">
-      <div class="output">Welcome to My Terminal Portfolio! Type <span style="color:#fff;">help</span> to see commands.</div>
-    </div>
+    <div class="output-container" id="output-container"></div>
     <div class="line">
       <span class="prompt">C:\Users\Myself&gt;</span>
       <input id="input-line" autocomplete="off" autofocus />
@@ -83,16 +108,22 @@
     </div>
   </div>
 
+  <input type="color" id="color-picker" value="#94b1ff" />
+
   <script>
     const terminal = document.getElementById('terminal');
-    const outputContainer = terminal.querySelector('.output-container');
+    const outputContainer = document.getElementById('output-container');
     const inputLine = document.getElementById('input-line');
+    const colorPicker = document.getElementById('color-picker');
+    const body = document.body;
 
     const commands = {
       help: `Available commands:
   about     - About me
   projects  - List of projects
   contact   - How to contact me
+  color     - Change terminal color
+  theme     - Toggle light/dark mode
   clear     - Clear the terminal`,
 
       about: `Hi, I'm Jack — a developer passionate about clean code and cool interfaces.
@@ -102,7 +133,13 @@ I build web apps, experiment with new tech, and love all things open source.`,
 - indicamp: a site that assists on creating a team project.`,
 
       contact: `Email: jay7math@gmail.com
-GitHub: github.com/VectorSophie`  }; 
+GitHub: github.com/VectorSophie`,
+
+      color: `Opening color picker...
+Choose a new terminal color.`,
+
+      theme: `Toggling theme...`,
+    };
 
     function printOutput(text) {
       const el = document.createElement('div');
@@ -116,6 +153,19 @@ GitHub: github.com/VectorSophie`  };
       outputContainer.innerHTML = '';
     }
 
+    function animatedWelcome(message, delay = 30) {
+      let i = 0;
+      const el = document.createElement('div');
+      el.className = 'output';
+      outputContainer.appendChild(el);
+      const interval = setInterval(() => {
+        el.textContent += message.charAt(i);
+        outputContainer.scrollTop = outputContainer.scrollHeight;
+        i++;
+        if (i >= message.length) clearInterval(interval);
+      }, delay);
+    }
+
     inputLine.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         const input = inputLine.value.trim().toLowerCase();
@@ -125,6 +175,12 @@ GitHub: github.com/VectorSophie`  };
 
         if (input === 'clear') {
           clearTerminal();
+        } else if (input === 'color') {
+          colorPicker.click();
+          printOutput(commands.color);
+        } else if (input === 'theme') {
+          body.classList.toggle('light-theme');
+          printOutput(commands.theme);
         } else if (commands[input]) {
           printOutput(commands[input]);
         } else {
@@ -135,7 +191,14 @@ GitHub: github.com/VectorSophie`  };
       }
     });
 
+    colorPicker.addEventListener('input', (e) => {
+      const newColor = e.target.value;
+      document.documentElement.style.setProperty('--terminal-color', newColor);
+    });
+
     terminal.addEventListener('click', () => inputLine.focus());
+
+    animatedWelcome("Welcome to My Terminal Portfolio! Type 'help' to see commands.");
   </script>
 </body>
 </html>
