@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MediaPipe Swipe Detection</title>
+  <style>
+    video, canvas {
+      display: block;
+      margin: 10px auto;
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <h2>MediaPipe Swipe Detection</h2>
+  <video id="video" width="640" height="480" autoplay muted playsinline></video>
+  <canvas id="canvas" width="640" height="480"></canvas>
+
+  <!-- ✅ MediaPipe Scripts (no module!) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let lastX = null;
+    let swipeCooldown = false;
+    const swipeThreshold = 60;
+
+    const hands = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 0,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.7
+    });
+
+    hands.onResults(results => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+      if (results.multiHandLandmarks.length > 0) {
+        const landmarks = results.multiHandLandmarks[0];
+        drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: '#00FF00' });
+        drawLandmarks(ctx, landmarks, { color: '#FF0000', radius: 4 });
+
+        const palmX = landmarks[9].x * canvas.width;
+
+        if (lastX !== null && !swipeCooldown) {
+          const deltaX = palmX - lastX;
+          if (deltaX > swipeThreshold) {
+            swipeCooldown = true;
+            alert("Swipe Right!");
+            setTimeout(() => swipeCooldown = false, 1000);
+          } else if (deltaX < -swipeThreshold) {
+            swipeCooldown = true;
+            alert("Swipe Left!");
+            setTimeout(() => swipeCooldown = false, 1000);
+          }
+        }
+        lastX = palmX;
+      } else {
+        lastX = null;
+      }
+    });
+
+    const camera = new Camera(video, {
+      onFrame: async () => await hands.send({ image: video }),
+      width: 640,
+      height: 480
+    });
+
+    camera.start();
+  </script>
+</body>
+</html>

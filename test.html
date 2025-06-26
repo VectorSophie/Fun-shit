@@ -26,8 +26,8 @@
 
     body.light-theme {
       --bg-color: #f9f9f9;
-      --text-color: #1a1a1a;
-      --prompt-color: #2e58a6;
+      --text-color: #94b1ff;
+      --prompt-color: #94b1ff;
     }
 
     #terminal {
@@ -194,7 +194,10 @@ Choose a new terminal color.`,
     colorPicker.addEventListener('input', (e) => {
       const newColor = e.target.value;
       document.documentElement.style.setProperty('--terminal-color', newColor);
+      document.documentElement.style.setProperty('--text-color', newColor);
+      document.documentElement.style.setProperty('--prompt-color', newColor);
     });
+
 
     terminal.addEventListener('click', () => inputLine.focus());
 
