@@ -9,7 +9,6 @@
       --terminal-color: #94b1ff;
       --bg-color: #000;
       --text-color: #94b1ff;
-      --prompt-color: #94b1ff;
     }
 
     body {
@@ -26,8 +25,7 @@
 
     body.light-theme {
       --bg-color: #f9f9f9;
-      --text-color: #1a1a1a;
-      --prompt-color: #2e58a6;
+      --text-color: #94b1ff;
     }
 
     #terminal {
@@ -61,12 +59,16 @@
     .line {
       display: flex;
       align-items: center;
+      font-family: 'Consolas', monospace;
+      font-size: 1.1rem;
     }
 
     .prompt {
       margin-right: 0.5rem;
-      color: var(--prompt-color);
+      color: var(--terminal-color);
       font-weight: bold;
+      user-select: text;
+      white-space: nowrap;
     }
 
     #input-line {
@@ -75,17 +77,22 @@
       border: none;
       outline: none;
       color: var(--text-color);
-      font-size: 1.1rem;
-      caret-color: var(--text-color);
+      caret-color: transparent; /* hide native caret */
       font-family: inherit;
+      font-size: inherit;
+      line-height: 1.2em;
+      white-space: pre;
     }
 
+    /* Custom blinking block cursor right after input text */
     .blinking-cursor {
       width: 8px;
       height: 1.2em;
       background-color: var(--text-color);
-      margin-left: 2px;
+      margin-left: 0;
       animation: blink 1s steps(2, start) infinite;
+      flex-shrink: 0;
+      border-radius: 1px;
     }
 
     @keyframes blink {
@@ -103,7 +110,7 @@
     <div class="output-container" id="output-container"></div>
     <div class="line">
       <span class="prompt">C:\Users\Myself&gt;</span>
-      <input id="input-line" autocomplete="off" autofocus />
+      <input id="input-line" autocomplete="off" autofocus spellcheck="false" />
       <div class="blinking-cursor"></div>
     </div>
   </div>
