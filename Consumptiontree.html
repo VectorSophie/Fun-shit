@@ -1,0 +1,285 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>🍽️ What Should I Eat? Vertical Tree with Emojis</title>
+<style>
+  body {
+    font-family: sans-serif;
+    margin: 0; padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  svg {
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+  }
+  .node circle {
+    fill: #3c78d8;
+    cursor: pointer;
+  }
+  .node text {
+    font: 16px sans-serif;
+    fill: black;
+    pointer-events: none;
+    user-select: none;
+  }
+  .link {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 2px;
+  }
+  #backBtn {
+    margin: 15px 0;
+    padding: 8px 14px;
+    background: #ccc;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #result {
+    margin-top: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #3c78d8;
+    min-height: 30px;
+  }
+</style>
+</head>
+<body>
+
+<h2>🍽️ What Should I Eat?</h2>
+<button id="backBtn" disabled>⬅️ Back</button>
+<svg id="tree" width="600" height="500"></svg>
+<div id="result"></div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script>
+const foodTree = {
+  question: "Are you hungry?",
+  options: [
+    {
+      answer: "Yes",
+      next: {
+        question: "Sweet or Savory?",
+        options: [
+          {
+            answer: "Sweet",
+            next: {
+              question: "Hot or Cold?",
+              options: [
+                { answer: "Hot", result: "Pancakes" },
+                { answer: "Cold", result: "Ice Cream" }
+              ]
+            }
+          },
+          {
+            answer: "Savory",
+            next: {
+              question: "Light or Heavy?",
+              options: [
+                { answer: "Light", result: "Salad" },
+                { answer: "Heavy", result: "Burger" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      answer: "No",
+      result: "Just drink water"
+    }
+  ]
+};
+
+const svg = d3.select("#tree"),
+      width = +svg.attr("width"),
+      height = +svg.attr("height"),
+      margin = {top: 40, right: 20, bottom: 40, left: 20};
+
+let g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+const treeLayout = d3.tree().size([width - margin.left - margin.right, height - margin.top - margin.bottom]);
+
+function convertToD3(node, answer = null) {
+  const d3Node = { name: node.question || node.result, children: [], answer };
+  if (node.options) {
+    node.options.forEach(opt => {
+      const child = opt.next || { result: opt.result };
+      d3Node.children.push(convertToD3(child, opt.answer));
+    });
+  }
+  return d3Node;
+}
+
+let root = d3.hierarchy(convertToD3(foodTree));
+root.x0 = width / 2;
+root.y0 = 0;
+
+root.children.forEach(collapse);
+
+const history = [];
+
+const resultEmojiMap = {
+  "Pancakes": "🥞",
+  "Ice Cream": "🍨",
+  "Salad": "🥗",
+  "Burger": "🍔",
+  "Just drink water": "💧"
+};
+
+function collapse(d) {
+  if (d.children) {
+    d._children = d.children;
+    d._children.forEach(collapse);
+    d.children = null;
+  }
+}
+
+function expand(d) {
+  if (d._children) {
+    d.children = d._children;
+    d.children.forEach(expand);
+    d._children = null;
+  }
+}
+
+function update(source) {
+  const treeData = treeLayout(root);
+  const nodes = treeData.descendants();
+  const links = treeData.links();
+
+  nodes.forEach(d => { d.y = d.depth * 100; });
+  const node = g.selectAll("g.node")
+    .data(nodes, d => d.id || (d.id = ++i));
+
+  const nodeEnter = node.enter().append("g")
+    .attr("class", "node")
+    .attr("transform", d => `translate(${source.x0},${source.y0})`)
+    .on("click", (event, d) => nodeClick(d));
+
+  nodeEnter.append("circle")
+    .attr("r", 1e-6);
+
+  nodeEnter.append("text")
+    .attr("dy", d => (d.data.name in resultEmojiMap && !d.data.children) ? "0.3em" : "-1em")
+    .attr("text-anchor", "middle")
+    .style("font-size", d => (d.data.name in resultEmojiMap && !d.data.children) ? "24px" : "12px")
+    .text(d => {
+      if (d.data.name in resultEmojiMap && !d.data.children) {
+        return resultEmojiMap[d.data.name];
+      }
+      return d.data.answer ? d.data.answer : d.data.name;
+    });
+
+  const nodeUpdate = nodeEnter.merge(node);
+
+  nodeUpdate.transition()
+    .duration(400)
+    .attr("transform", d => `translate(${d.x},${d.y})`);
+
+  nodeUpdate.select("circle").transition()
+    .duration(400)
+    .attr("r", 10);
+
+  const nodeExit = node.exit().transition()
+    .duration(400)
+    .attr("transform", d => `translate(${source.x},${source.y})`)
+    .remove();
+
+  nodeExit.select("circle").attr("r", 1e-6);
+  nodeExit.select("text").style("fill-opacity", 1e-6);
+
+  const link = g.selectAll("path.link")
+    .data(links, d => d.target.id);
+
+  const linkEnter = link.enter().insert("path", "g")
+    .attr("class", "link")
+    .attr("d", d => {
+      const o = { x: source.x0, y: source.y0 };
+      return diagonal(o, o);
+    });
+
+  const linkUpdate = linkEnter.merge(link);
+
+  linkUpdate.transition()
+    .duration(400)
+    .attr("d", d => diagonal(d.source, d.target));
+
+  const linkExit = link.exit().transition()
+    .duration(400)
+    .attr("d", d => {
+      const o = { x: source.x, y: source.y };
+      return diagonal(o, o);
+    })
+    .remove();
+
+  nodes.forEach(d => {
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+
+  document.getElementById("backBtn").disabled = history.length === 0;
+}
+
+function diagonal(s, d) {
+  return `M ${s.x} ${s.y}
+          C ${s.x} ${(s.y + d.y) / 2},
+            ${d.x} ${(s.y + d.y) / 2},
+            ${d.x} ${d.y}`;
+}
+
+function nodeClick(d) {
+  // If it is a leaf node (no children or _children), show result and return
+  if ((!d.children && !d._children) && !(d.data.children)) {
+    const foodName = d.data.name;
+    const emoji = resultEmojiMap[foodName] || "";
+    document.getElementById("result").textContent = `You should eat ${emoji} ${foodName}!`;
+    return;
+  }
+
+  // Clear previous result if any
+  document.getElementById("result").textContent = "";
+
+  history.push(root.copy());
+
+  if (d.parent) {
+    d.parent.children.forEach(sibling => {
+      if (sibling !== d) collapse(sibling);
+    });
+    expand(d);
+  } else {
+    if (root.children) {
+      root.children.forEach(c => {
+        if (c !== d) collapse(c);
+      });
+      expand(d);
+    }
+  }
+
+  if (d.children) d.children.forEach(collapse);
+  if (d._children) d._children.forEach(collapse);
+
+  if (d._children) {
+    expand(d);
+  } else if (d.children) {
+    expand(d);
+  }
+
+  update(d);
+}
+
+let i = 0;
+root.children.forEach(collapse);
+update(root);
+
+document.getElementById("backBtn").addEventListener("click", () => {
+  if (history.length === 0) return;
+  root = history.pop();
+  update(root);
+  document.getElementById("result").textContent = "";
+});
+</script>
+</body>
+</html>
