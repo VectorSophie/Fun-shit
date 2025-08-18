@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terminal Portfolio</title>
+  <style>
+    :root {
+      --terminal-color: #94b1ff;
+      --bg-color: #000;
+      --text-color: var(--terminal-color);
+    }
+
+    body {
+      background: var(--bg-color);
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Consolas', monospace;
+      user-select: none;
+      transition: background 0.4s ease;
+    }
+
+    body.light-theme {
+      --bg-color: #f9f9f9;
+      --text-color: var(--terminal-color);
+    }
+
+    #terminal {
+      background: var(--bg-color);
+      border: 2px solid var(--terminal-color);
+      width: 80vw;
+      height: 70vh;
+      max-width: 1000px;
+      max-height: 800px;
+      padding: 1rem 1.5rem;
+      box-shadow: none;
+      border-radius: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      transition: all 0.4s ease;
+      color: var(--text-color);
+      user-select: text;
+    }
+
+    #welcome {
+      white-space: pre-wrap;
+      user-select: text;
+      margin-bottom: 1rem;
+      font-weight: normal;
+      line-height: 1.3;
+      color: var(--text-color);
+      flex-shrink: 0;
+    }
+
+    .line {
+      display: flex;
+      align-items: center;
+      font-family: 'Consolas', monospace;
+      font-size: 1.05rem;
+      margin-bottom: 0.5rem;
+      flex-shrink: 0;
+      color: var(--text-color);
+    }
+
+    .prompt {
+      margin-right: 0.5rem;
+      font-weight: normal;
+      user-select: text;
+      white-space: nowrap;
+      color: var(--text-color);
+    }
+
+    input[type="text"] {
+      flex-grow: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-color);
+      caret-color: var(--terminal-color);
+      font-family: inherit;
+      font-size: inherit;
+      line-height: 1.2em;
+      white-space: pre;
+      user-select: text;
+    }
+
+    .output-container {
+      overflow-y: auto;
+      flex-grow: 1;
+      margin-top: 0.5rem;
+      color: var(--text-color);
+      white-space: pre-wrap;
+    }
+
+    .output {
+      margin: 0.25rem 0;
+      color: var(--text-color);
+    }
+
+    #color-picker {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal" tabindex="0">
+    <div id="welcome">
+Microsoft Windows [Version 10.0.19045.6093]
+(c) Microsoft Corporation. All rights reserved.
+
+    </div>
+    <div id="output-container"></div>
+  </div>
+
+  <input type="color" id="color-picker" value="#94b1ff" />
+
+  <script>
+    const terminal = document.getElementById('terminal');
+    const outputContainer = document.getElementById('output-container');
+    const colorPicker = document.getElementById('color-picker');
+    const body = document.body;
+
+    const commands = {
+      help: `Available commands:
+  about     - About me
+  projects  - List of projects
+  contact   - How to contact me
+  color     - Change terminal color
+  theme     - Toggle light/dark mode
+  clear     - Clear the terminal`,
+
+      about: `Hi, I'm Jack — a developer passionate about clean code and cool interfaces.
+I build web apps, experiment with new tech, and love all things open source.`,
+
+      projects: `- Terminal Portfolio (this one!)
+- indicamp: a site that assists on creating a team project.`,
+
+      contact: `Email: jay7math@gmail.com
+GitHub: github.com/VectorSophie`,
+
+      color: `Opening color picker...
+Choose a new terminal color.`,
+
+      theme: `Toggling theme...`,
+    };
+
+    function printOutput(text) {
+      const el = document.createElement('div');
+      el.className = 'output';
+      el.textContent = text;
+      outputContainer.appendChild(el);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function clearTerminal() {
+      outputContainer.innerHTML = '';
+    }
+
+    function createInputLine() {
+      const line = document.createElement('div');
+      line.className = 'line';
+
+      const prompt = document.createElement('span');
+      prompt.className = 'prompt';
+      prompt.textContent = 'C:\\Users\\user>';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.autocomplete = 'off';
+      input.spellcheck = false;
+
+      line.appendChild(prompt);
+      line.appendChild(input);
+      terminal.appendChild(line);
+
+      input.focus();
+
+      terminal.scrollTop = terminal.scrollHeight;
+
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          const command = input.value.trim().toLowerCase();
+          if (!command) return;
+
+          // Replace input with text node to show command line
+          const commandText = document.createElement('span');
+          commandText.textContent = command;
+          commandText.style.color = 'var(--text-color)';
+          line.replaceChild(commandText, input);
+
+          // Handle commands and print output below the command line
+          if (command === 'clear') {
+            clearTerminal();
+          } else if (command === 'color') {
+            colorPicker.click();
+            printOutput(commands.color);
+          } else if (command === 'theme') {
+            body.classList.toggle('light-theme');
+            printOutput(commands.theme);
+          } else if (commands[command]) {
+            printOutput(commands[command]);
+          } else {
+            printOutput(`'${command}' is not recognized as an internal or external command.\nType 'help' to see available commands.`);
+          }
+
+          createInputLine();
+        }
+      });
+    }
+
+    createInputLine();
+
+    colorPicker.addEventListener('input', (e) => {
+      const newColor = e.target.value;
+      document.documentElement.style.setProperty('--terminal-color', newColor);
+      document.documentElement.style.setProperty('--text-color', newColor);
+    });
+
+    // Focus input when clicking anywhere in terminal
+    terminal.addEventListener('click', () => {
+      const inputs = terminal.querySelectorAll('input[type="text"]');
+      if (inputs.length > 0) {
+        inputs[inputs.length - 1].focus();
+      }
+    });
+  </script>
+</body>
+</html>
