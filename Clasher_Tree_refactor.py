@@ -8,7 +8,7 @@ class Skill:
         self.coin = coin
         self.count = count
 
-    def power(self):
+    def power_distribution(self):
         dist = defaultdict(float)
         for heads in range(self.count + 1):
             power = self.base + heads * self.coin
@@ -25,8 +25,8 @@ def clash_tree_re(skill1, skill2):
         s1 = Skill(skill1.base, skill1.coin, c1)
         s2 = Skill(skill2.base, skill2.coin, c2)
 
-        dist1 = s1.power()
-        dist2 = s2.power()
+        dist1 = s1.power_distribution()
+        dist2 = s2.power_distribution()
 
         win = 0.0
         tie = 0.0
